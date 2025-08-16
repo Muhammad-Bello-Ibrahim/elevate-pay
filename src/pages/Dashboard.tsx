@@ -16,12 +16,16 @@ import {
 } from "lucide-react";
 import ProgressCircle from "@/components/ProgressCircle";
 import EarningsCard from "@/components/EarningsCard";
+import ActivationModal from "@/components/ActivationModal";
+import WithdrawalModal from "@/components/WithdrawalModal";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Dashboard = () => {
   const { toast } = useToast();
   const { user } = useAuth();
+  const [showActivationModal, setShowActivationModal] = useState(false);
+  const [showWithdrawalModal, setShowWithdrawalModal] = useState(false);
 
   if (!user) return null;
 
@@ -44,17 +48,11 @@ const Dashboard = () => {
   }, []);
 
   const handleActivate = () => {
-    toast({
-      title: "Activation Started",
-      description: "Redirecting to payment...",
-    });
+    setShowActivationModal(true);
   };
 
   const handleWithdraw = () => {
-    toast({
-      title: "Withdrawal Request",
-      description: "Enter withdrawal details...",
-    });
+    setShowWithdrawalModal(true);
   };
 
   const handleRefer = () => {
@@ -139,21 +137,34 @@ const Dashboard = () => {
       <div className="space-y-3">
         <h3 className="text-lg font-bold text-foreground">Quick Actions</h3>
         <div className="grid grid-cols-3 gap-3">
-          <Button 
-            onClick={handleActivate}
-            className="flex flex-col items-center gap-2 h-auto py-4 bg-gradient-primary hover:shadow-primary transition-all duration-300 hover:scale-105"
-          >
-            <Plus size={20} />
-            <span className="text-xs">Activate</span>
-          </Button>
+          {!user.isActivated ? (
+            <Button 
+              onClick={handleActivate}
+              className="flex flex-col items-center gap-2 h-auto py-4 bg-gradient-primary hover:shadow-primary transition-all duration-300 hover:scale-105"
+            >
+              <Plus size={20} />
+              <span className="text-xs">Activate</span>
+            </Button>
+          ) : (
+            <Button 
+              onClick={handleRefer}
+              className="flex flex-col items-center gap-2 h-auto py-4 bg-gradient-primary hover:shadow-primary transition-all duration-300 hover:scale-105"
+            >
+              <Share2 size={20} />
+              <span className="text-xs">Refer</span>
+            </Button>
+          )}
+          
           <Button 
             onClick={handleWithdraw}
             variant="outline"
             className="flex flex-col items-center gap-2 h-auto py-4 border-2 border-secondary text-secondary hover:bg-secondary hover:text-secondary-foreground transition-all duration-300"
+            disabled={!user.isActivated || user.availableBalance < 1000}
           >
             <ArrowDownCircle size={20} />
             <span className="text-xs">Withdraw</span>
           </Button>
+          
           <Button 
             onClick={handleRefer}
             variant="outline" 
@@ -189,6 +200,16 @@ const Dashboard = () => {
           </div>
         </Card>
       </div>
+
+      {/* Modals */}
+      <ActivationModal 
+        isOpen={showActivationModal} 
+        onClose={() => setShowActivationModal(false)} 
+      />
+      <WithdrawalModal 
+        isOpen={showWithdrawalModal} 
+        onClose={() => setShowWithdrawalModal(false)} 
+      />
     </div>
   );
 };
