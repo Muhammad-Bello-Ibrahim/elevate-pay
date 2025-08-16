@@ -18,17 +18,22 @@ import {
   Star
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import QRCodeDisplay from "@/components/QRCodeDisplay";
 
 const Referrals = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
+  const [showQRCode, setShowQRCode] = useState(false);
+
+  if (!user) return null;
 
   const [referralData] = useState({
     totalReferrals: 21,
     directReferrals: 8,
     systemAssigned: 13,
-    referralLink: "https://elevatex.app/ref/john-adebayo-4521",
-    qrCodeUrl: ""
+    referralLink: `https://elevatex.app/ref/${user.name.toLowerCase().replace(/\s+/g, '-')}-${user.id}`,
   });
 
   const [directReferrals] = useState([
@@ -70,6 +75,7 @@ const Referrals = () => {
   };
 
   const generateQRCode = () => {
+    setShowQRCode(!showQRCode);
     toast({
       title: "QR Code Generated! 📱",
       description: "QR code ready for sharing",
@@ -131,6 +137,15 @@ const Referrals = () => {
           </Button>
         </div>
       </Card>
+
+      {/* QR Code Display */}
+      {showQRCode && (
+        <QRCodeDisplay
+          value={referralData.referralLink}
+          title="Your Referral QR Code"
+          size={180}
+        />
+      )}
 
       {/* Search */}
       <div className="relative">

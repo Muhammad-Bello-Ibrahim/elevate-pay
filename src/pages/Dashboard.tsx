@@ -16,21 +16,18 @@ import {
 } from "lucide-react";
 import ProgressCircle from "@/components/ProgressCircle";
 import EarningsCard from "@/components/EarningsCard";
+import ActivationModal from "@/components/ActivationModal";
+import WithdrawalModal from "@/components/WithdrawalModal";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Dashboard = () => {
   const { toast } = useToast();
-  const [user] = useState({
-    name: "John Adebayo",
-    level: "Growth",
-    avatar: "",
-    totalEarnings: 45000,
-    availableBalance: 12500,
-    pendingWithdrawals: 8000,
-    chainProgress: 67.7,
-    membersReferred: 21,
-    totalRequired: 31
-  });
+  const { user } = useAuth();
+  const [showActivationModal, setShowActivationModal] = useState(false);
+  const [showWithdrawalModal, setShowWithdrawalModal] = useState(false);
+
+  if (!user) return null;
 
   const [recentActivities] = useState([
     { type: "referral", message: "New referral: Sarah joined your network", time: "2 min ago" },
@@ -43,25 +40,19 @@ const Dashboard = () => {
     // Welcome animation
     const timer = setTimeout(() => {
       toast({
-        title: "Welcome back, John! 👋",
-        description: `You're ${32 - user.membersReferred} referrals away from completing your chain.`,
+        title: `Welcome back, ${user.name.split(' ')[0]}! 👋`,
+        description: `You're ${user.totalRequired - user.membersReferred} referrals away from completing your chain.`,
       });
     }, 1000);
     return () => clearTimeout(timer);
   }, []);
 
   const handleActivate = () => {
-    toast({
-      title: "Activation Started",
-      description: "Redirecting to payment...",
-    });
+    setShowActivationModal(true);
   };
 
   const handleWithdraw = () => {
-    toast({
-      title: "Withdrawal Request",
-      description: "Enter withdrawal details...",
-    });
+    setShowWithdrawalModal(true);
   };
 
   const handleRefer = () => {
@@ -146,21 +137,34 @@ const Dashboard = () => {
       <div className="space-y-3">
         <h3 className="text-lg font-bold text-foreground">Quick Actions</h3>
         <div className="grid grid-cols-3 gap-3">
-          <Button 
-            onClick={handleActivate}
-            className="flex flex-col items-center gap-2 h-auto py-4 bg-gradient-primary hover:shadow-primary transition-all duration-300 hover:scale-105"
-          >
-            <Plus size={20} />
-            <span className="text-xs">Activate</span>
-          </Button>
+          {!user.isActivated ? (
+            <Button 
+              onClick={handleActivate}
+              className="flex flex-col items-center gap-2 h-auto py-4 bg-gradient-primary hover:shadow-primary transition-all duration-300 hover:scale-105"
+            >
+              <Plus size={20} />
+              <span className="text-xs">Activate</span>
+            </Button>
+          ) : (
+            <Button 
+              onClick={handleRefer}
+              className="flex flex-col items-center gap-2 h-auto py-4 bg-gradient-primary hover:shadow-primary transition-all duration-300 hover:scale-105"
+            >
+              <Share2 size={20} />
+              <span className="text-xs">Refer</span>
+            </Button>
+          )}
+          
           <Button 
             onClick={handleWithdraw}
             variant="outline"
             className="flex flex-col items-center gap-2 h-auto py-4 border-2 border-secondary text-secondary hover:bg-secondary hover:text-secondary-foreground transition-all duration-300"
+            disabled={!user.isActivated || user.availableBalance < 1000}
           >
             <ArrowDownCircle size={20} />
             <span className="text-xs">Withdraw</span>
           </Button>
+          
           <Button 
             onClick={handleRefer}
             variant="outline" 
@@ -196,6 +200,16 @@ const Dashboard = () => {
           </div>
         </Card>
       </div>
+
+      {/* Modals */}
+      <ActivationModal 
+        isOpen={showActivationModal} 
+        onClose={() => setShowActivationModal(false)} 
+      />
+      <WithdrawalModal 
+        isOpen={showWithdrawalModal} 
+        onClose={() => setShowWithdrawalModal(false)} 
+      />
     </div>
   );
 };
