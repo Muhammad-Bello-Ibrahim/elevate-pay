@@ -1,73 +1,174 @@
-# Welcome to your Lovable project
+# Elevate Pay - Mobile App
 
-## Project info
+**Elevate Pay** is a financial platform mobile application built with React Native and Expo, featuring a referral system, wallet management, and earnings tracking.
 
-**URL**: https://lovable.dev/projects/a7fda28f-f03b-4681-b945-6e042a0df443
+## 📱 Mobile App Features
 
-## How can I edit this code?
+- **Dashboard**: Overview of earnings, chain progress, and recent activities
+- **Referrals**: Manage your referral network and track commissions
+- **Wallet**: View balance, transaction history, and withdrawal options
+- **Notifications**: Real-time updates and notification preferences
+- **Profile**: Account management and settings
 
-There are several ways of editing your application.
+## 🚀 Getting Started
 
-**Use Lovable**
+### Prerequisites
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/a7fda28f-f03b-4681-b945-6e042a0df443) and start prompting.
+- Node.js 18+ and npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- Expo CLI (optional, for enhanced development experience)
 
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+### Installation
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
+# Step 1: Clone the repository
 git clone <YOUR_GIT_URL>
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# Step 2: Navigate to the project directory
+cd elevate-pay
 
-# Step 3: Install the necessary dependencies.
-npm i
+# Step 3: Install dependencies
+npm install
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+# Step 4: Start the development server
+npm run start
 ```
 
-**Edit a file directly in GitHub**
+### Available Scripts
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```sh
+# Start Expo development server
+npm run start
 
-**Use GitHub Codespaces**
+# Run on Android device/emulator
+npm run android
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+# Run on iOS device/simulator (macOS only)
+npm run ios
 
-## What technologies are used for this project?
+# Run in web browser
+npm run mobile
 
-This project is built with:
+# Build for web (legacy Vite build)
+npm run build
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+# Lint code
+npm run lint
+```
 
-## How can I deploy this project?
+## 🏗️ Project Structure
 
-Simply open [Lovable](https://lovable.dev/projects/a7fda28f-f03b-4681-b945-6e042a0df443) and click on Share -> Publish.
+```
+elevate-pay/
+├── src/                    # React Native source code
+│   ├── screens/           # Main app screens
+│   │   ├── Dashboard.tsx  # Dashboard screen
+│   │   ├── Referrals.tsx  # Referrals management
+│   │   ├── Wallet.tsx     # Wallet and transactions
+│   │   ├── Notifications.tsx # Notifications center
+│   │   └── Profile.tsx    # User profile
+│   ├── contexts/         # React contexts
+│   │   └── AuthContext.tsx # User authentication
+│   └── lib/              # Utility functions
+├── src-web/              # Original web app (backup)
+├── assets/               # App icons and images
+├── App.tsx              # Main app component
+├── app.json             # Expo configuration
+└── package.json         # Dependencies and scripts
+```
 
-## Can I connect a custom domain to my Lovable project?
+## 🛠️ Technologies Used
 
-Yes, you can!
+### Mobile App (Current)
+- **React Native** - Cross-platform mobile framework
+- **Expo** - Development platform and build tools
+- **React Navigation** - Navigation library
+- **TypeScript** - Type-safe JavaScript
+- **Ionicons** - Icon library
+- **@tanstack/react-query** - Data fetching and caching
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+### Web App (Legacy - in src-web/)
+- **Vite** - Build tool
+- **React** - Web framework
+- **shadcn-ui** - UI component library
+- **Tailwind CSS** - Utility-first CSS framework
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+## 📱 Running on Devices
+
+### Web Browser
+```sh
+npm run mobile
+# Opens in browser at http://localhost:8081
+```
+
+### Android
+```sh
+npm run android
+# Requires Android Studio and emulator or physical device
+```
+
+### iOS
+```sh
+npm run ios
+# Requires Xcode (macOS only) and simulator or physical device
+```
+
+### Expo Go App
+1. Install Expo Go on your mobile device
+2. Run `npm run start`
+3. Scan the QR code with Expo Go
+
+## 🔧 Development
+
+### Code Structure
+- **Screens**: Individual app screens with React Native components
+- **Navigation**: Bottom tab navigation with 5 main sections
+- **Styling**: React Native StyleSheet with mobile-optimized layouts
+- **State Management**: React Context for authentication and user data
+- **Platform Support**: iOS, Android, and Web
+
+### Key Features Implemented
+- ✅ Cross-platform mobile navigation
+- ✅ User authentication flow
+- ✅ Dashboard with earnings and progress tracking
+- ✅ Referral system management
+- ✅ Wallet and transaction history
+- ✅ Notification center
+- ✅ User profile and settings
+- ✅ Responsive mobile design
+- ✅ Pull-to-refresh functionality
+
+## 🚢 Deployment
+
+### Expo Build Service
+```sh
+# Build for iOS
+expo build:ios
+
+# Build for Android
+expo build:android
+
+# Publish to Expo
+expo publish
+```
+
+### Web Deployment
+```sh
+npm run build
+# Deploy the dist/ folder to your web hosting service
+```
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is private and proprietary.
+
+## 🆘 Support
+
+For support, email support@elevatepay.com or create an issue in this repository.
