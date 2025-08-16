@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Alert } from 'react-native';
 
 interface User {
   id: string;
@@ -52,43 +51,56 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Mock user data for demonstration
-  const mockUser: User = {
-    id: '1',
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    phone: '+2348123456789',
-    nin: '12345678901',
-    level: 'Growth',
-    avatar: undefined,
-    totalEarnings: 45000,
-    availableBalance: 15000,
-    pendingWithdrawals: 8000,
-    chainProgress: 75,
-    membersReferred: 15,
-    totalRequired: 20,
-    isActivated: true,
-  };
-
   useEffect(() => {
-    // Simulate loading user data
-    const timer = setTimeout(() => {
-      setUser(mockUser);
-      setIsLoading(false);
-    }, 1000);
+    // Simulate checking for stored auth token
+    const checkAuth = async () => {
+      try {
+        // In a real app, you'd check localStorage/SecureStore for auth token
+        const storedUser = localStorage.getItem('elevatex_user');
+        if (storedUser) {
+          setUser(JSON.parse(storedUser));
+        }
+      } catch (error) {
+        console.error('Auth check error:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-    return () => clearTimeout(timer);
+    checkAuth();
   }, []);
 
-  const login = async (phone: string, password: string): Promise<void> => {
+  const login = async (phone: string, password: string) => {
     setIsLoading(true);
+    
     try {
-      // Simulate login API call
+      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Mock user data - in real app, this would come from API
+      const mockUser: User = {
+        id: '1',
+        name: 'John Adebayo',
+        email: 'john@example.com',
+        phone: phone,
+        nin: '12345678901',
+        level: 'Growth',
+        avatar: '',
+        totalEarnings: 45000,
+        availableBalance: 12500,
+        pendingWithdrawals: 8000,
+        chainProgress: 67.7,
+        membersReferred: 21,
+        totalRequired: 31,
+        isActivated: true
+      };
+      
       setUser(mockUser);
+      localStorage.setItem('elevatex_user', JSON.stringify(mockUser));
+      localStorage.setItem('elevatex_token', 'mock_jwt_token');
+      
     } catch (error) {
-      Alert.alert('Login Failed', 'Invalid credentials');
-      throw error;
+      throw new Error('Login failed');
     } finally {
       setIsLoading(false);
     }
@@ -100,39 +112,53 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     email: string;
     nin: string;
     password: string;
-  }): Promise<void> => {
+  }) => {
     setIsLoading(true);
+    
     try {
-      // Simulate signup API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Mock user data for new signup
       const newUser: User = {
-        ...mockUser,
-        ...userData,
         id: Date.now().toString(),
+        name: userData.name,
+        email: userData.email,
+        phone: userData.phone,
+        nin: userData.nin,
+        level: 'Starter',
+        avatar: '',
         totalEarnings: 0,
         availableBalance: 0,
         pendingWithdrawals: 0,
         chainProgress: 0,
         membersReferred: 0,
-        totalRequired: 20,
-        isActivated: false,
+        totalRequired: 31,
+        isActivated: false
       };
+      
       setUser(newUser);
+      localStorage.setItem('elevatex_user', JSON.stringify(newUser));
+      localStorage.setItem('elevatex_token', 'mock_jwt_token');
+      
     } catch (error) {
-      Alert.alert('Signup Failed', 'Unable to create account');
-      throw error;
+      throw new Error('Signup failed');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const logout = (): void => {
+  const logout = () => {
     setUser(null);
+    localStorage.removeItem('elevatex_user');
+    localStorage.removeItem('elevatex_token');
   };
 
-  const updateUser = (updates: Partial<User>): void => {
+  const updateUser = (updates: Partial<User>) => {
     if (user) {
-      setUser({ ...user, ...updates });
+      const updatedUser = { ...user, ...updates };
+      setUser(updatedUser);
+      localStorage.setItem('elevatex_user', JSON.stringify(updatedUser));
     }
   };
 
@@ -143,7 +169,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     login,
     signup,
     logout,
-    updateUser,
+    updateUser
   };
 
   return (
