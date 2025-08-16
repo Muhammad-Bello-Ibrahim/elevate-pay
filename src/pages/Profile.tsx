@@ -26,19 +26,23 @@ import {
   MapPin
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Profile = () => {
   const { toast } = useToast();
+  const { user, logout, updateUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
+
+  if (!user) return null;
   
   const [userProfile, setUserProfile] = useState({
-    name: "John Adebayo",
-    email: "john.adebayo@email.com",
-    phone: "+234 801 234 5678",
-    nin: "12345678901",
-    level: "Growth",
+    name: user.name,
+    email: user.email,
+    phone: user.phone,
+    nin: user.nin,
+    level: user.level,
     joinDate: "March 2024",
-    avatar: "",
+    avatar: user.avatar || "",
     location: "Lagos, Nigeria"
   });
 
@@ -58,6 +62,11 @@ const Profile = () => {
 
   const handleSaveProfile = () => {
     setIsEditing(false);
+    updateUser({
+      name: userProfile.name,
+      email: userProfile.email,
+      phone: userProfile.phone
+    });
     toast({
       title: "Profile Updated! ✅",
       description: "Your profile information has been saved successfully",
@@ -65,6 +74,7 @@ const Profile = () => {
   };
 
   const handleLogout = () => {
+    logout();
     toast({
       title: "Logged Out",
       description: "You have been successfully logged out",

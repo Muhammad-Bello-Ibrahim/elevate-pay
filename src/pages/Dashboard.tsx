@@ -17,20 +17,13 @@ import {
 import ProgressCircle from "@/components/ProgressCircle";
 import EarningsCard from "@/components/EarningsCard";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Dashboard = () => {
   const { toast } = useToast();
-  const [user] = useState({
-    name: "John Adebayo",
-    level: "Growth",
-    avatar: "",
-    totalEarnings: 45000,
-    availableBalance: 12500,
-    pendingWithdrawals: 8000,
-    chainProgress: 67.7,
-    membersReferred: 21,
-    totalRequired: 31
-  });
+  const { user } = useAuth();
+
+  if (!user) return null;
 
   const [recentActivities] = useState([
     { type: "referral", message: "New referral: Sarah joined your network", time: "2 min ago" },
@@ -43,8 +36,8 @@ const Dashboard = () => {
     // Welcome animation
     const timer = setTimeout(() => {
       toast({
-        title: "Welcome back, John! 👋",
-        description: `You're ${32 - user.membersReferred} referrals away from completing your chain.`,
+        title: `Welcome back, ${user.name.split(' ')[0]}! 👋`,
+        description: `You're ${user.totalRequired - user.membersReferred} referrals away from completing your chain.`,
       });
     }, 1000);
     return () => clearTimeout(timer);
