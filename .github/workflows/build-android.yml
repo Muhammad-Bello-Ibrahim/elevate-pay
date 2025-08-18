@@ -1,0 +1,150 @@
+name: Build Android APK
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: 'EAS build profile to use'
+        required: true
+        default: 'android-apk'
+        type: choice
+        options:
+          - android-apk
+          - preview
+
+jobs:
+  build-android:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Check for EXPO_TOKEN
+        run: |
+          if [ -z "${{ secrets.EXPO_TOKEN }}" ]; then
+            echo "You must provide an EXPO_TOKEN secret linked to this project's Expo account in this repo's secrets. Learn more: https://docs.expo.dev/eas-update/github-actions"
+            exit 1
+          fi
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+
+      - name: Setup Expo and EAS
+        uses: expo/expo-github-action@v8
+        with:
+          expo-version: latest
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate assets
+        run: npm run generate-assets
+
+      - name: Build Android APK
+        run: |
+          PROFILE="${{ github.event.inputs.profile || 'android-apk' }}"
+          echo "Building with profile: $PROFILE"
+          eas build --platform android --profile $PROFILE --non-interactive --wait
+        
+      - name: Download APK
+        id: download
+        run: |
+          # Get the latest build for this project
+          BUILD_ID=$(eas build:list --platform android --status finished --limit 1 --json | jq -r '.[0].id')
+          echo "Latest build ID: $BUILD_ID"
+          
+          # Download the build
+          eas build:download --id $BUILD_ID --output ./elevatex-release.apk
+          echo "apk-path=./elevatex-release.apk" >> $GITHUB_OUTPUT
+          
+      - name: Get build info
+        id: build-info
+        run: |
+          echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          echo "commit-sha=${GITHUB_SHA:0:7}" >> $GITHUB_OUTPUT
+          echo "timestamp=$(date +'%Y%m%d-%H%M%S')" >> $GITHUB_OUTPUT
+          
+      - name: Create Release (on tag push)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            ./elevatex-release.apk
+          name: "ElevateX ${{ steps.build-info.outputs.tag }}"
+          body: |
+            ## ElevateX Release ${{ steps.build-info.outputs.tag }}
+            
+            **📱 Android APK:** Ready for installation
+            **🔄 Commit:** ${{ steps.build-info.outputs.commit-sha }}
+            **📅 Built:** ${{ steps.build-info.outputs.timestamp }}
+            
+            ### 🚀 What's New in ElevateX
+            - Crypto-inspired dark theme with neon accents
+            - Enhanced performance with optimized components
+            - Glassmorphism design elements
+            - Improved user experience and navigation
+            
+            ### 📲 Installation
+            Download the APK file and install on your Android device. You may need to enable "Install from unknown sources" in your device settings.
+            
+            ### ⚠️ Compliance Notice
+            ElevateX is a financial platform focused on wallet services, transfers, and bill payments. The referral system provides optional bonuses for user growth and is not an investment scheme.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit APK to artifacts branch
+        if: always()
+        run: |
+          # Configure git
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Create or switch to artifacts branch
+          git fetch origin artifacts 2>/dev/null || true
+          git checkout -B artifacts
+          
+          # Create artifacts directory if it doesn't exist
+          mkdir -p artifacts/android
+          
+          # Copy APK with timestamp
+          if [ -f "./elevatex-release.apk" ]; then
+            cp "./elevatex-release.apk" "artifacts/android/elevatex-${{ steps.build-info.outputs.timestamp }}.apk"
+            cp "./elevatex-release.apk" "artifacts/android/elevatex-latest.apk"
+            
+            # Update artifacts index
+            echo "# ElevateX Build Artifacts" > artifacts/README.md
+            echo "" >> artifacts/README.md
+            echo "## Latest Android APK" >> artifacts/README.md
+            echo "- **Latest:** [elevatex-latest.apk](android/elevatex-latest.apk)" >> artifacts/README.md
+            echo "- **Timestamped:** [elevatex-${{ steps.build-info.outputs.timestamp }}.apk](android/elevatex-${{ steps.build-info.outputs.timestamp }}.apk)" >> artifacts/README.md
+            echo "- **Built:** ${{ steps.build-info.outputs.timestamp }}" >> artifacts/README.md
+            echo "- **Commit:** ${{ steps.build-info.outputs.commit-sha }}" >> artifacts/README.md
+            echo "" >> artifacts/README.md
+            echo "## All Builds" >> artifacts/README.md
+            ls -la artifacts/android/*.apk | awk '{print "- " $9 " (" $5 " bytes, " $6 " " $7 " " $8 ")"}' >> artifacts/README.md
+            
+            # Commit to artifacts branch
+            git add artifacts/
+            git commit -m "Add Android APK build ${{ steps.build-info.outputs.timestamp }} [skip ci]" || echo "No changes to commit"
+            git push origin artifacts --force
+          else
+            echo "APK file not found, skipping artifact commit"
+          fi
+
+      - name: Upload APK as workflow artifact
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: elevatex-android-apk
+          path: ./elevatex-release.apk
+          retention-days: 30
