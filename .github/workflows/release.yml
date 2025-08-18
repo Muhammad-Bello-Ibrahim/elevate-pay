@@ -11,10 +11,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4.0.3
         with:
           node-version: 20
           cache: 'npm'
@@ -169,25 +169,22 @@ jobs:
 
       - name: Create GitHub Release
         if: steps.check_tag.outputs.tag_exists == 'false'
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ env.VERSION_NAME }}
-          name: Release ${{ env.VERSION_NAME }}
-          body: |
-            ## Release ${{ env.VERSION_NAME }}
-            
-            ### 📱 Android APK
-            - Automated build from main branch
-            - Built with Expo Build Service
-            - Compatible with Android 5.0+ (API level 21+)
-            
-            ### 🔧 Build Information
-            - Commit: ${{ github.sha }}
-            - Build Date: ${{ steps.get_version.outputs.version }}
-            - Branch: ${{ github.ref_name }}
-          files: build/outputs/apk/release/*.apk
-          draft: false
-          prerelease: false
+        run: |
+          # Create release using GitHub CLI
+          gh release create ${{ env.VERSION_NAME }} \
+            --title "Release ${{ env.VERSION_NAME }}" \
+            --notes "## Release ${{ env.VERSION_NAME }}
+
+          ### 📱 Android APK
+          - Automated build from main branch
+          - Built with Expo Build Service
+          - Compatible with Android 5.0+ (API level 21+)
+
+          ### 🔧 Build Information
+          - Commit: ${{ github.sha }}
+          - Build Date: ${{ steps.get_version.outputs.version }}
+          - Branch: ${{ github.ref_name }}" \
+            build/outputs/apk/release/*.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
