@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import { tokens } from './src/theme/tokens';
 
 export default {
 	darkMode: ["class"],
@@ -7,6 +8,8 @@ export default {
 		"./components/**/*.{ts,tsx}",
 		"./app/**/*.{ts,tsx}",
 		"./src/**/*.{ts,tsx}",
+		"./src-web/**/*.{ts,tsx}",
+		"./index.html"
 	],
 	prefix: "",
 	theme: {
@@ -62,26 +65,57 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+				// ElevateX Brand Colors
+				brand: {
+					dark: `hsl(${tokens.colors.brand.dark})`,
+					darker: `hsl(${tokens.colors.brand.darker})`,
+					navy: `hsl(${tokens.colors.brand.navy})`,
+					slate: `hsl(${tokens.colors.brand.slate})`,
+				},
+				neon: {
+					cyan: `hsl(${tokens.colors.neon.cyan})`,
+					purple: `hsl(${tokens.colors.neon.purple})`,
+					green: `hsl(${tokens.colors.neon.green})`,
+					pink: `hsl(${tokens.colors.neon.pink})`,
+					orange: `hsl(${tokens.colors.neon.orange})`,
+				},
+				glass: tokens.colors.glass,
 			},
 			backgroundImage: {
-				'gradient-primary': 'var(--gradient-primary)',
-				'gradient-success': 'var(--gradient-success)', 
-				'gradient-card': 'var(--gradient-card)'
+				'gradient-primary': tokens.gradients.primary,
+				'gradient-secondary': tokens.gradients.secondary,
+				'gradient-success': tokens.gradients.success,
+				'gradient-card': tokens.gradients.card,
+				'gradient-glass': tokens.gradients.glass,
 			},
 			boxShadow: {
-				'card': 'var(--shadow-card)',
-				'primary': 'var(--shadow-primary)',
-				'success': 'var(--shadow-success)'
+				'glow-cyan': tokens.shadows.glow.cyan,
+				'glow-purple': tokens.shadows.glow.purple,
+				'glow-green': tokens.shadows.glow.green,
+				'card': tokens.shadows.card,
+				'elevated': tokens.shadows.elevated,
+				'glass': tokens.shadows.glass,
 			},
-			transitionTimingFunction: {
-				'smooth': 'cubic-bezier(0.4, 0, 0.2, 1)',
-				'bounce': 'cubic-bezier(0.68, -0.55, 0.265, 1.55)'
+			backdropBlur: {
+				'glass': tokens.blur.glass,
+				'strong': tokens.blur.strong,
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
-				sm: 'calc(var(--radius) - 4px)'
+				sm: 'calc(var(--radius) - 4px)',
+				...tokens.borderRadius,
+			},
+			fontFamily: tokens.typography.fontFamily,
+			fontSize: tokens.typography.fontSize,
+			fontWeight: tokens.typography.fontWeight,
+			spacing: tokens.spacing,
+			transitionDuration: tokens.animation.duration,
+			transitionTimingFunction: {
+				'smooth': 'cubic-bezier(0.4, 0, 0.2, 1)',
+				'bounce': 'cubic-bezier(0.68, -0.55, 0.265, 1.55)',
+				...tokens.animation.easing,
 			},
 			keyframes: {
 				'accordion-down': {
@@ -103,6 +137,14 @@ export default {
 				'progress-fill': {
 					'0%': { width: '0%' },
 					'100%': { width: 'var(--progress-width)' }
+				},
+				'glow-pulse': {
+					'0%, 100%': { boxShadow: tokens.shadows.glow.cyan },
+					'50%': { boxShadow: `0 0 30px hsl(${tokens.colors.neon.cyan} / 0.5)` }
+				},
+				'float': {
+					'0%, 100%': { transform: 'translateY(0px)' },
+					'50%': { transform: 'translateY(-10px)' }
 				}
 			},
 			animation: {
@@ -110,7 +152,9 @@ export default {
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
 				'slide-up': 'slide-up 0.5s ease-out',
-				'progress-fill': 'progress-fill 1s ease-out'
+				'progress-fill': 'progress-fill 1s ease-out',
+				'glow-pulse': 'glow-pulse 2s ease-in-out infinite',
+				'float': 'float 3s ease-in-out infinite'
 			}
 		}
 	},
