@@ -1,35 +1,144 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
-  ScrollView,
+  FlatList,
   TouchableOpacity,
   Alert,
   RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme, useThemedStyles } from '../contexts/ThemeContext';
+
+// Transaction interface
+interface Transaction {
+  id: string;
+  type: 'credit' | 'debit';
+  amount: number;
+  description: string;
+  date: string;
+  status: 'completed' | 'pending' | 'failed';
+}
+
+// Memoized transaction item component
+const TransactionItem = React.memo(({ item }: { item: Transaction }) => {
+  const getTransactionIcon = (type: string) => {
+    return type === 'credit' ? 'arrow-down-circle' : 'arrow-up-circle';
+  };
+
+  const getTransactionColor = (type: string) => {
+    return type === 'credit' ? '#10B981' : '#EF4444';
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed': return '#10B981';
+      case 'pending': return '#F59E0B';
+      case 'failed': return '#EF4444';
+      default: return '#6B7280';
+    }
+  };
+
+  return (
+    <View className="p-4 mb-3 rounded-xl bg-white/10 backdrop-blur-md border border-white/10">
+      <View className="flex-row items-center justify-between">
+        <View className="flex-row items-center flex-1">
+          <View className="w-10 h-10 rounded-full bg-white/10 items-center justify-center mr-3">
+            <Ionicons 
+              name={getTransactionIcon(item.type)} 
+              size={20} 
+              color={getTransactionColor(item.type)} 
+            />
+          </View>
+          
+          <View className="flex-1">
+            <Text className="text-white font-medium text-sm" numberOfLines={1}>
+              {item.description}
+            </Text>
+            <Text className="text-gray-400 text-xs mt-1">{item.date}</Text>
+          </View>
+        </View>
+        
+        <View className="items-end">
+          <Text className={`font-bold text-base ${
+            item.type === 'credit' ? 'text-neon-green' : 'text-red-400'
+          }`}>
+            {item.type === 'credit' ? '+' : '-'}₦{item.amount.toLocaleString()}
+          </Text>
+          <View className={`px-2 py-1 rounded-full mt-1`} style={{ 
+            backgroundColor: `${getStatusColor(item.status)}20`
+          }}>
+            <Text className="text-xs capitalize" style={{ 
+              color: getStatusColor(item.status) 
+            }}>
+              {item.status}
+            </Text>
+          </View>
+        </View>
+      </View>
+    </View>
+  );
+});
+
+// Quick action button component
+const QuickActionButton = React.memo(({ 
+  icon, 
+  label, 
+  onPress, 
+  gradient,
+  disabled = false 
+}: {
+  icon: string;
+  label: string;
+  onPress: () => void;
+  gradient: string;
+  disabled?: boolean;
+}) => (
+  <TouchableOpacity 
+    className={`flex-1 p-4 rounded-xl mx-1 items-center ${
+      disabled ? 'bg-gray-800/50' : gradient
+    }`}
+    onPress={onPress}
+    disabled={disabled}
+    activeOpacity={0.8}
+  >
+    <Ionicons 
+      name={icon as any} 
+      size={24} 
+      color={disabled ? "#6B7280" : "white"} 
+    />
+    <Text className={`font-semibold mt-2 text-sm ${
+      disabled ? 'text-gray-400' : 'text-white'
+    }`}>
+      {label}
+    </Text>
+  </TouchableOpacity>
+));
 
 const WalletScreen = () => {
   const { user } = useAuth();
+  const { isDark } = useTheme();
+  const styles = useThemedStyles();
   const [refreshing, setRefreshing] = useState(false);
 
-  const [transactions] = useState([
-    { id: '1', type: 'credit', amount: 2500, description: 'Referral bonus from Sarah', date: '2024-02-15', status: 'completed' },
-    { id: '2', type: 'debit', amount: 5000, description: 'Withdrawal to bank account', date: '2024-02-10', status: 'completed' },
-    { id: '3', type: 'credit', amount: 1800, description: 'Level 2 commission', date: '2024-02-08', status: 'completed' },
-    { id: '4', type: 'credit', amount: 3200, description: 'Referral bonus from Mike', date: '2024-02-05', status: 'pending' },
-  ]);
+  const transactions = useMemo(() => [
+    { id: '1', type: 'credit' as const, amount: 2500, description: 'Referral bonus from Sarah', date: '2024-02-15', status: 'completed' as const },
+    { id: '2', type: 'debit' as const, amount: 5000, description: 'Withdrawal to bank account', date: '2024-02-10', status: 'completed' as const },
+    { id: '3', type: 'credit' as const, amount: 1800, description: 'Level 2 commission', date: '2024-02-08', status: 'completed' as const },
+    { id: '4', type: 'credit' as const, amount: 3200, description: 'Referral bonus from Mike', date: '2024-02-05', status: 'pending' as const },
+    { id: '5', type: 'debit' as const, amount: 1200, description: 'Bill payment - Electricity', date: '2024-02-03', status: 'completed' as const },
+    { id: '6', type: 'credit' as const, amount: 4500, description: 'P2P transfer received', date: '2024-02-01', status: 'completed' as const },
+  ], []);
 
-  const onRefresh = React.useCallback(() => {
+  const onRefresh = useCallback(() => {
     setRefreshing(true);
     setTimeout(() => {
       setRefreshing(false);
     }, 2000);
   }, []);
 
-  const handleWithdraw = () => {
+  const handleWithdraw = useCallback(() => {
     if (!user?.isActivated || (user?.availableBalance || 0) < 1000) {
       Alert.alert('Withdrawal Not Available', 'Account must be activated and have minimum balance of ₦1,000');
       return;
@@ -42,391 +151,167 @@ const WalletScreen = () => {
         { text: 'Withdraw', onPress: () => Alert.alert('Success', 'Withdrawal request submitted!') }
       ]
     );
-  };
+  }, [user]);
 
-  const handleTopUp = () => {
-    Alert.alert('Top Up Wallet', 'Feature coming soon!');
-  };
+  const handleTopUp = useCallback(() => {
+    Alert.alert('Top Up Wallet', 'Choose your preferred payment method:', [
+      { text: 'Bank Transfer', onPress: () => Alert.alert('Bank Transfer', 'Feature coming soon!') },
+      { text: 'Card Payment', onPress: () => Alert.alert('Card Payment', 'Feature coming soon!') },
+      { text: 'Cancel', style: 'cancel' }
+    ]);
+  }, []);
 
-  return (
-    <ScrollView 
-      style={styles.container}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-      }
-    >
-      {/* Balance Cards */}
-      <View style={styles.balanceContainer}>
-        <View style={styles.mainBalanceCard}>
-          <Text style={styles.balanceLabel}>Total Balance</Text>
-          <Text style={styles.balanceAmount}>₦{((user?.availableBalance || 0) + (user?.pendingWithdrawals || 0)).toLocaleString()}</Text>
-          <View style={styles.balanceBreakdown}>
-            <View style={styles.breakdownItem}>
-              <Text style={styles.breakdownLabel}>Available</Text>
-              <Text style={styles.breakdownAmount}>₦{(user?.availableBalance || 0).toLocaleString()}</Text>
-            </View>
-            <View style={styles.breakdownItem}>
-              <Text style={styles.breakdownLabel}>Pending</Text>
-              <Text style={styles.breakdownAmount}>₦{(user?.pendingWithdrawals || 0).toLocaleString()}</Text>
-            </View>
-          </View>
-        </View>
+  const handleSend = useCallback(() => {
+    Alert.alert('Send Money', 'P2P transfer feature coming soon!');
+  }, []);
 
-        <View style={styles.earningsCard}>
-          <Ionicons name="trending-up" size={24} color="#10B981" />
-          <Text style={styles.earningsLabel}>Total Earnings</Text>
-          <Text style={styles.earningsAmount}>₦{(user?.totalEarnings || 0).toLocaleString()}</Text>
+  const handleBuyAirtime = useCallback(() => {
+    Alert.alert('Buy Airtime', 'Airtime purchase feature coming soon!');
+  }, []);
+
+  const renderTransaction = useCallback(({ item }: { item: Transaction }) => (
+    <TransactionItem item={item} />
+  ), []);
+
+  const keyExtractor = useCallback((item: Transaction) => item.id, []);
+
+  const getItemLayout = useCallback(
+    (_: any, index: number) => ({
+      length: 90, // Approximate height of each transaction item
+      offset: 90 * index,
+      index,
+    }),
+    []
+  );
+
+  if (!user) {
+    return (
+      <View className="flex-1 justify-center items-center bg-brand-dark">
+        <View className="p-8 rounded-xl bg-white/10 backdrop-blur-md">
+          <Text className="text-white text-lg font-semibold">Loading Wallet...</Text>
         </View>
       </View>
+    );
+  }
 
-      {/* Action Buttons */}
-      <View style={styles.actionsContainer}>
-        <TouchableOpacity 
-          style={[
-            styles.actionButton,
-            (!user?.isActivated || (user?.availableBalance || 0) < 1000) && styles.disabledButton
-          ]} 
-          onPress={handleWithdraw}
-          disabled={!user?.isActivated || (user?.availableBalance || 0) < 1000}
-        >
-          <Ionicons name="arrow-down-circle" size={24} color="white" />
-          <Text style={styles.actionButtonText}>Withdraw</Text>
-        </TouchableOpacity>
+  const ListHeaderComponent = useMemo(() => (
+    <View className="bg-brand-dark">
+      {/* Balance Card */}
+      <View className="mx-4 mt-4 p-6 rounded-2xl bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md border border-white/20">
+        <Text className="text-white text-lg font-bold mb-4">Wallet Balance</Text>
         
-        <TouchableOpacity style={styles.secondaryActionButton} onPress={handleTopUp}>
-          <Ionicons name="add-circle-outline" size={24} color="#3B82F6" />
-          <Text style={styles.secondaryActionButtonText}>Top Up</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Quick Stats */}
-      <View style={styles.statsContainer}>
-        <View style={styles.statItem}>
-          <Ionicons name="calendar" size={20} color="#3B82F6" />
-          <Text style={styles.statLabel}>This Month</Text>
-          <Text style={styles.statValue}>₦12,500</Text>
+        <View className="items-center mb-6">
+          <Text className="text-gray-300 text-sm mb-2">Total Balance</Text>
+          <Text className="text-white text-4xl font-bold">
+            ₦{((user?.availableBalance || 0) + (user?.pendingWithdrawals || 0)).toLocaleString()}
+          </Text>
         </View>
-        <View style={styles.statItem}>
-          <Ionicons name="trophy" size={20} color="#F59E0B" />
-          <Text style={styles.statLabel}>Best Month</Text>
-          <Text style={styles.statValue}>₦18,200</Text>
-        </View>
-        <View style={styles.statItem}>
-          <Ionicons name="people" size={20} color="#10B981" />
-          <Text style={styles.statLabel}>Active Refs</Text>
-          <Text style={styles.statValue}>{user?.membersReferred || 0}</Text>
-        </View>
-      </View>
-
-      {/* Recent Transactions */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Recent Transactions</Text>
-        {transactions.length > 0 ? (
-          transactions.map((transaction) => (
-            <View key={transaction.id} style={styles.transactionCard}>
-              <View style={styles.transactionIcon}>
-                <Ionicons 
-                  name={transaction.type === 'credit' ? 'arrow-down-circle' : 'arrow-up-circle'} 
-                  size={24} 
-                  color={transaction.type === 'credit' ? '#10B981' : '#EF4444'} 
-                />
-              </View>
-              <View style={styles.transactionInfo}>
-                <Text style={styles.transactionDescription}>{transaction.description}</Text>
-                <Text style={styles.transactionDate}>{transaction.date}</Text>
-              </View>
-              <View style={styles.transactionAmount}>
-                <Text style={[
-                  styles.amountText,
-                  { color: transaction.type === 'credit' ? '#10B981' : '#EF4444' }
-                ]}>
-                  {transaction.type === 'credit' ? '+' : '-'}₦{transaction.amount.toLocaleString()}
-                </Text>
-                <View style={[
-                  styles.statusBadge,
-                  { backgroundColor: transaction.status === 'completed' ? '#10B981' : '#F59E0B' }
-                ]}>
-                  <Text style={styles.statusText}>{transaction.status}</Text>
-                </View>
-              </View>
-            </View>
-          ))
-        ) : (
-          <View style={styles.emptyState}>
-            <Ionicons name="receipt-outline" size={64} color="#D1D5DB" />
-            <Text style={styles.emptyStateTitle}>No Transactions Yet</Text>
-            <Text style={styles.emptyStateText}>
-              Your transaction history will appear here
+        
+        <View className="flex-row space-x-4">
+          <View className="flex-1 p-4 rounded-xl bg-neon-green/20 border border-neon-green/30">
+            <Text className="text-neon-green text-xs font-medium">Available</Text>
+            <Text className="text-white text-lg font-bold mt-1">
+              ₦{(user?.availableBalance || 0).toLocaleString()}
             </Text>
           </View>
-        )}
-      </View>
-
-      {/* Withdrawal Info */}
-      <View style={styles.infoSection}>
-        <Text style={styles.infoTitle}>Withdrawal Information</Text>
-        <View style={styles.infoCard}>
-          <View style={styles.infoItem}>
-            <Text style={styles.infoLabel}>Minimum Withdrawal:</Text>
-            <Text style={styles.infoValue}>₦1,000</Text>
-          </View>
-          <View style={styles.infoItem}>
-            <Text style={styles.infoLabel}>Processing Time:</Text>
-            <Text style={styles.infoValue}>1-3 business days</Text>
-          </View>
-          <View style={styles.infoItem}>
-            <Text style={styles.infoLabel}>Withdrawal Fee:</Text>
-            <Text style={styles.infoValue}>₦50</Text>
+          
+          <View className="flex-1 p-4 rounded-xl bg-neon-orange/20 border border-neon-orange/30">
+            <Text className="text-neon-orange text-xs font-medium">Pending</Text>
+            <Text className="text-white text-lg font-bold mt-1">
+              ₦{(user?.pendingWithdrawals || 0).toLocaleString()}
+            </Text>
           </View>
         </View>
       </View>
-    </ScrollView>
+
+      {/* Quick Actions */}
+      <View className="mx-4 mt-6">
+        <Text className="text-white text-lg font-bold mb-4">Quick Actions</Text>
+        
+        <View className="flex-row mb-4">
+          <QuickActionButton
+            icon="add-circle"
+            label="Top Up"
+            onPress={handleTopUp}
+            gradient="bg-gradient-to-r from-neon-cyan to-neon-purple"
+          />
+          
+          <QuickActionButton
+            icon="arrow-up-circle"
+            label="Send"
+            onPress={handleSend}
+            gradient="bg-gradient-to-r from-neon-purple to-neon-pink"
+          />
+          
+          <QuickActionButton
+            icon="arrow-down-circle"
+            label="Withdraw"
+            onPress={handleWithdraw}
+            gradient="bg-gradient-to-r from-neon-green to-neon-cyan"
+            disabled={!user?.isActivated || (user?.availableBalance || 0) < 1000}
+          />
+        </View>
+        
+        <View className="flex-row">
+          <QuickActionButton
+            icon="phone-portrait"
+            label="Airtime"
+            onPress={handleBuyAirtime}
+            gradient="bg-gradient-to-r from-neon-orange to-neon-pink"
+          />
+          
+          <QuickActionButton
+            icon="flash"
+            label="Bills"
+            onPress={() => Alert.alert('Pay Bills', 'Bill payment feature coming soon!')}
+            gradient="bg-gradient-to-r from-neon-pink to-neon-purple"
+          />
+          
+          <QuickActionButton
+            icon="card"
+            label="Cards"
+            onPress={() => Alert.alert('Manage Cards', 'Card management feature coming soon!')}
+            gradient="bg-gradient-to-r from-neon-purple to-neon-cyan"
+          />
+        </View>
+      </View>
+
+      {/* Transaction History Header */}
+      <View className="mx-4 mt-6 mb-4">
+        <View className="flex-row justify-between items-center">
+          <Text className="text-white text-lg font-bold">Recent Transactions</Text>
+          <TouchableOpacity onPress={() => Alert.alert('View All', 'Full transaction history coming soon!')}>
+            <Text className="text-neon-cyan text-sm font-medium">View All</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
+  ), [user, handleTopUp, handleSend, handleWithdraw, handleBuyAirtime]);
+
+  return (
+    <FlatList
+      className="flex-1 bg-brand-dark"
+      data={transactions}
+      renderItem={renderTransaction}
+      keyExtractor={keyExtractor}
+      getItemLayout={getItemLayout}
+      ListHeaderComponent={ListHeaderComponent}
+      contentContainerStyle={{ paddingBottom: 20, paddingHorizontal: 16 }}
+      refreshControl={
+        <RefreshControl 
+          refreshing={refreshing} 
+          onRefresh={onRefresh}
+          tintColor="#00FFFF"
+          colors={["#00FFFF"]}
+        />
+      }
+      removeClippedSubviews={true}
+      maxToRenderPerBatch={10}
+      windowSize={10}
+      initialNumToRender={8}
+      showsVerticalScrollIndicator={false}
+    />
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F9FAFB',
-  },
-  balanceContainer: {
-    padding: 16,
-  },
-  mainBalanceCard: {
-    backgroundColor: '#3B82F6',
-    padding: 24,
-    borderRadius: 16,
-    marginBottom: 16,
-  },
-  balanceLabel: {
-    color: 'rgba(255, 255, 255, 0.8)',
-    fontSize: 14,
-    marginBottom: 8,
-  },
-  balanceAmount: {
-    color: 'white',
-    fontSize: 32,
-    fontWeight: 'bold',
-    marginBottom: 16,
-  },
-  balanceBreakdown: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  breakdownItem: {
-    flex: 1,
-  },
-  breakdownLabel: {
-    color: 'rgba(255, 255, 255, 0.8)',
-    fontSize: 12,
-    marginBottom: 4,
-  },
-  breakdownAmount: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  earningsCard: {
-    backgroundColor: 'white',
-    padding: 20,
-    borderRadius: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  earningsLabel: {
-    flex: 1,
-    fontSize: 14,
-    color: '#6B7280',
-    marginLeft: 12,
-  },
-  earningsAmount: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#111827',
-  },
-  actionsContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    marginBottom: 16,
-  },
-  actionButton: {
-    backgroundColor: '#10B981',
-    flex: 1,
-    paddingVertical: 16,
-    borderRadius: 12,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 8,
-  },
-  secondaryActionButton: {
-    backgroundColor: 'white',
-    flex: 1,
-    paddingVertical: 16,
-    borderRadius: 12,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: 8,
-    borderWidth: 2,
-    borderColor: '#3B82F6',
-  },
-  disabledButton: {
-    opacity: 0.5,
-  },
-  actionButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
-    marginLeft: 8,
-  },
-  secondaryActionButtonText: {
-    color: '#3B82F6',
-    fontSize: 16,
-    fontWeight: '600',
-    marginLeft: 8,
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    marginBottom: 16,
-  },
-  statItem: {
-    backgroundColor: 'white',
-    flex: 1,
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginHorizontal: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#6B7280',
-    marginVertical: 4,
-  },
-  statValue: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#111827',
-  },
-  section: {
-    margin: 16,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#111827',
-    marginBottom: 12,
-  },
-  transactionCard: {
-    backgroundColor: 'white',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  transactionIcon: {
-    marginRight: 12,
-  },
-  transactionInfo: {
-    flex: 1,
-  },
-  transactionDescription: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#111827',
-    marginBottom: 4,
-  },
-  transactionDate: {
-    fontSize: 12,
-    color: '#6B7280',
-  },
-  transactionAmount: {
-    alignItems: 'flex-end',
-  },
-  amountText: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    marginBottom: 4,
-  },
-  statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 10,
-  },
-  statusText: {
-    color: 'white',
-    fontSize: 10,
-    fontWeight: 'bold',
-    textTransform: 'uppercase',
-  },
-  emptyState: {
-    alignItems: 'center',
-    padding: 32,
-  },
-  emptyStateTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#111827',
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  emptyStateText: {
-    fontSize: 14,
-    color: '#6B7280',
-    textAlign: 'center',
-  },
-  infoSection: {
-    margin: 16,
-  },
-  infoTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#111827',
-    marginBottom: 12,
-  },
-  infoCard: {
-    backgroundColor: 'white',
-    padding: 16,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  infoItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
-  },
-  infoLabel: {
-    fontSize: 14,
-    color: '#6B7280',
-  },
-  infoValue: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#111827',
-  },
-});
 
 export default WalletScreen;
