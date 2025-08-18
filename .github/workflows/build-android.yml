@@ -1,0 +1,87 @@
+name: Build Android APK, Release and Commit Artifact
+
+"on":
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to build (e.g., v1.0.1)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set TAG from manual input
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: echo "TAG=${{ github.event.inputs.tag }}" >> $GITHUB_ENV
+
+      - name: Set TAG from tag push
+        if: ${{ github.event_name != 'workflow_dispatch' }}
+        run: echo "TAG=${{ github.ref_name }}" >> $GITHUB_ENV
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Ensure tag exists and checkout tag
+        run: |
+          git fetch --tags --force
+          if ! git rev-parse -q --verify "refs/tags/${TAG}" >/dev/null; then
+            echo "Tag ${TAG} not found" >&2
+            exit 1
+          fi
+          git checkout -q "refs/tags/${TAG}"
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Install EAS CLI
+        run: npm i -g eas-cli
+
+      - name: Login to Expo
+        run: eas login --non-interactive --token "${{ secrets.EXPO_TOKEN }}"
+
+      - name: Build APK (wait)
+        run: eas build --platform android --profile android-apk --non-interactive --wait
+
+      - name: Download APK
+        run: |
+          BUILD_ID=$(eas build:list --status finished --platform android --limit 1 --json | jq -r '.[0].id')
+          mkdir -p dist
+          eas build:download --build-id "$BUILD_ID" --path ./dist/ElevateX.apk
+          echo "APK_PATH=dist/ElevateX.apk" >> $GITHUB_ENV
+
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ env.APK_PATH }}
+          tag_name: ${{ env.TAG }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit APK to artifacts/ on default branch
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          git fetch origin "$DEFAULT_BRANCH"
+          git checkout "$DEFAULT_BRANCH"
+          mkdir -p artifacts
+          cp "${{ env.APK_PATH }}" "artifacts/ElevateX-${TAG}.apk"
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add artifacts/
+          git commit -m "chore(artifacts): add APK for ${TAG} [skip ci]" || echo "No changes to commit"
+          git push origin "$DEFAULT_BRANCH"
