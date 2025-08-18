@@ -2,113 +2,84 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* ElevateX Design System - Crypto-inspired Theme */
 
 @layer base {
   :root {
-    /* Elevatex Brand Colors - 2025 Design System */
-    --background: 218 28% 97%;  /* #F8F9FA */
-    --foreground: 211 19% 15%;  /* #212529 */
+    /* ElevateX Brand Colors - Dark Theme by Default */
+    --background: 222 28% 8%;     /* Deep space navy */
+    --foreground: 210 40% 98%;    /* Nearly white */
 
-    --card: 0 0% 100%;
-    --card-foreground: 211 19% 15%;
+    --card: 216 20% 20%;          /* Dark slate for cards */
+    --card-foreground: 210 40% 98%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 211 19% 15%;
+    --popover: 218 28% 12%;       /* Dark navy */
+    --popover-foreground: 210 40% 98%;
 
-    /* Royal Blue Primary */
-    --primary: 211 78% 54%;  /* #2C7BE5 */
-    --primary-foreground: 0 0% 100%;
-    --primary-glow: 211 78% 70%;
+    /* Neon Cyan Primary */
+    --primary: 180 100% 50%;      /* Electric cyan #00FFFF */
+    --primary-foreground: 222 28% 8%;
+    --primary-glow: 180 100% 70%;
 
-    /* Success Green Secondary */
-    --secondary: 134 61% 41%;  /* #28A745 */
-    --secondary-foreground: 0 0% 100%;
+    /* Neon Purple Secondary */
+    --secondary: 271 91% 65%;     /* Neon purple #8B5CF6 */
+    --secondary-foreground: 210 40% 98%;
 
-    --muted: 218 28% 95%;
-    --muted-foreground: 215 16% 47%;  /* #6C757D */
+    --muted: 215 25% 27%;         /* Elevated surface */
+    --muted-foreground: 215 16% 47%;
 
-    --accent: 45 93% 51%;  /* #FFC107 Warning/Accent */
-    --accent-foreground: 211 19% 15%;
+    --accent: 316 73% 52%;        /* Hot pink accent #E879F9 */
+    --accent-foreground: 210 40% 98%;
 
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;     /* Error red */
+    --destructive-foreground: 210 40% 98%;
 
-    --border: 218 28% 90%;
-    --input: 218 28% 92%;
-    --ring: 211 78% 54%;
+    --border: 215 25% 27%;        /* Subtle border */
+    --input: 216 20% 20%;         /* Input background */
+    --ring: 180 100% 50%;         /* Focus ring (cyan) */
 
     --radius: 0.75rem;
 
-    /* Elevatex Design Tokens */
-    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
-    --gradient-success: linear-gradient(135deg, hsl(var(--secondary)), hsl(134 61% 55%));
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(218 28% 98%));
-    
-    /* Shadows & Glows */
-    --shadow-card: 0 4px 20px -4px hsl(var(--primary) / 0.1);
-    --shadow-primary: 0 8px 25px -8px hsl(var(--primary) / 0.3);
-    --shadow-success: 0 8px 25px -8px hsl(var(--secondary) / 0.3);
-    
-    /* Animations */
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-bounce: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Sidebar (same as main theme) */
+    --sidebar-background: 222 28% 8%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 180 100% 50%;
+    --sidebar-primary-foreground: 222 28% 8%;
+    --sidebar-accent: 216 20% 20%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 215 25% 27%;
+    --sidebar-ring: 180 100% 50%;
   }
 
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+  .light {
+    /* Light theme overrides (for accessibility toggle) */
+    --background: 210 40% 98%;
+    --foreground: 222 28% 8%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 28% 8%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 28% 8%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 180 100% 40%;      /* Darker cyan for light mode */
+    --primary-foreground: 210 40% 98%;
 
-    --secondary: 217.2 32.6% 17.5%;
+    --secondary: 271 91% 55%;     /* Darker purple for light mode */
     --secondary-foreground: 210 40% 98%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
 
-    --accent: 217.2 32.6% 17.5%;
+    --accent: 316 73% 42%;        /* Darker pink for light mode */
     --accent-foreground: 210 40% 98%;
 
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 84% 50%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 180 100% 40%;
   }
 }
 
@@ -116,8 +87,73 @@ All colors MUST be HSL.
   * {
     @apply border-border;
   }
-
+  
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+
+  /* Scrollbar styling for webkit browsers */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-background;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-muted rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-accent;
+  }
+}
+
+@layer components {
+  /* Glassmorphism card component */
+  .glass-card {
+    @apply backdrop-blur-glass bg-glass-light border border-white/10 rounded-xl shadow-glass;
+  }
+
+  /* Neon glow effects */
+  .glow-cyan {
+    @apply shadow-glow-cyan;
+  }
+
+  .glow-purple {
+    @apply shadow-glow-purple;
+  }
+
+  .glow-green {
+    @apply shadow-glow-green;
+  }
+
+  /* Gradient text */
+  .gradient-text {
+    @apply bg-gradient-primary bg-clip-text text-transparent;
+  }
+
+  /* Crypto-style buttons */
+  .btn-neon {
+    @apply bg-gradient-primary text-white font-semibold py-3 px-6 rounded-lg border border-neon-cyan/30 shadow-glow-cyan hover:shadow-glow-cyan hover:scale-105 transition-all duration-300;
+  }
+
+  .btn-glass {
+    @apply glass-card text-foreground font-medium py-3 px-6 hover:bg-glass-medium hover:border-white/20 transition-all duration-300;
+  }
+
+  /* Loading states */
+  .loading-glow {
+    @apply animate-glow-pulse;
+  }
+
+  /* Hero section styling */
+  .hero-gradient {
+    background: radial-gradient(ellipse at center, hsl(180 100% 50% / 0.1) 0%, transparent 70%),
+                radial-gradient(ellipse at 80% 20%, hsl(271 91% 65% / 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at 20% 80%, hsl(316 73% 52% / 0.1) 0%, transparent 50%);
   }
 }
