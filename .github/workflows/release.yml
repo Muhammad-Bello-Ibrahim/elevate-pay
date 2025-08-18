@@ -145,8 +145,8 @@ jobs:
           
           if [ -f "dist/app-release.apk" ]; then
             APK_PATH="dist/app-release.apk"
-          elif find . -name "*.apk" -type f | head -1; then
-            APK_PATH=$(find . -name "*.apk" -type f | head -1)
+          elif find . -name "*.apk" -type f 2>/dev/null | head -1; then
+            APK_PATH=$(find . -name "*.apk" -type f 2>/dev/null | head -1)
           else
             echo "❌ No APK file found"
             exit 1
@@ -157,7 +157,12 @@ jobs:
           
           # Create the expected directory structure for the release action
           mkdir -p build/outputs/apk/release
-          cp "$APK_PATH" build/outputs/apk/release/
+          
+          # Copy APK with a standard name for release
+          APK_FILENAME="elevate-x-${VERSION_NAME}.apk"
+          cp "$APK_PATH" "build/outputs/apk/release/$APK_FILENAME"
+          
+          echo "✅ APK prepared for release: $APK_FILENAME"
 
       - name: Create Git tag
         if: steps.check_tag.outputs.tag_exists == 'false'

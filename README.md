@@ -2,6 +2,8 @@
 
 **Elevate Pay** is a financial platform mobile application built with React Native and Expo, featuring a referral system, wallet management, and earnings tracking.
 
+🚀 **Automatic APK Releases**: Push to main branch automatically builds and releases Android APKs via GitHub Actions. See [APK_RELEASE_GUIDE.md](APK_RELEASE_GUIDE.md) for setup.
+
 ## 📱 Mobile App Features
 
 - **Dashboard**: Overview of earnings, chain progress, and recent activities
