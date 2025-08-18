@@ -57,17 +57,6 @@ jobs:
         if: steps.check_tag.outputs.tag_exists == 'false'
         run: npm install -g eas-cli@latest
 
-      - name: Set up Expo authentication
-        if: steps.check_tag.outputs.tag_exists == 'false'
-        run: |
-          if [ -n "${{ secrets.EXPO_TOKEN }}" ]; then
-            echo "EXPO_TOKEN is set, authenticating with Expo..."
-            echo "${{ secrets.EXPO_TOKEN }}" | eas login --non-interactive
-          else
-            echo "⚠️ EXPO_TOKEN not found in secrets. Skipping Expo authentication."
-            echo "📝 To enable actual builds, add EXPO_TOKEN to repository secrets."
-          fi
-
       - name: Check for EAS configuration
         if: steps.check_tag.outputs.tag_exists == 'false'
         id: eas_config
@@ -112,6 +101,8 @@ jobs:
 
       - name: Build APK with EAS
         if: steps.check_tag.outputs.tag_exists == 'false'
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: |
           echo "Starting APK build process..."
           
