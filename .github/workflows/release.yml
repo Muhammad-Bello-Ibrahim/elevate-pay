@@ -54,7 +54,9 @@ jobs:
         if: steps.check_tag.outputs.tag_exists == 'false'
         run: npm install -g eas-cli@latest
 
-      # REMOVED Expo authentication step
+      # NOTE: Deprecated 'Set up Expo authentication' step removed
+      # The previous 'eas login --non-interactive' caused interactive prompt failures in CI
+      # Authentication now handled via EXPO_TOKEN environment variable in build step
 
       - name: Check for EAS configuration
         if: steps.check_tag.outputs.tag_exists == 'false'
@@ -66,10 +68,13 @@ jobs:
           else
             echo "No EAS configuration found, creating basic config..."
             echo "has_eas_config=false" >> $GITHUB_OUTPUT
+            # Create eas.json with appVersionSource to satisfy Expo CLI requirements
+            # appVersionSource: "remote" prevents version conflicts and warnings
             cat > eas.json << 'EOF'
           {
             "cli": {
-              "version": ">= 5.4.0"
+              "version": ">= 5.4.0",
+              "appVersionSource": "remote"
             },
             "build": {
               "development": {
@@ -102,6 +107,8 @@ jobs:
         if: steps.check_tag.outputs.tag_exists == 'false'
         run: |
           echo "Starting APK build process..."
+          # EXPO_TOKEN environment variable provides non-interactive authentication
+          # This replaces the deprecated 'eas login --non-interactive' approach
           if [ -n "${{ secrets.EXPO_TOKEN }}" ]; then
             echo "🚀 Building APK with EAS Build..."
             eas build --platform android --profile production --wait

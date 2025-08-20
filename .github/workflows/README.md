@@ -142,4 +142,31 @@ The workflow will automatically:
 
 - [Expo EAS Build Documentation](https://docs.expo.dev/build/introduction/)
 - [GitHub Actions Documentation](https://docs.github.com/en/actions)
+
+## 📝 Recent Changes & Compatibility Notes
+
+### Expo CLI & EAS Compatibility Updates
+
+**Changes Made for Expo CLI Future Compatibility:**
+
+1. **Added `cli.appVersionSource` to eas.json**: 
+   - Satisfies upcoming Expo CLI requirements
+   - Prevents version conflict warnings
+   - Set to `"remote"` to use Expo's version management
+
+2. **Removed Deprecated Authentication Step**:
+   - Eliminated `eas login --non-interactive` which caused CI failures
+   - Authentication now handled via `EXPO_TOKEN` environment variable
+   - More reliable for automated CI/CD workflows
+
+3. **ESM Import Compatibility**:
+   - Replaced `require()` calls with ESM imports in config files
+   - Ensures compatibility with modern Node.js and Expo CLI versions
+   - Example: `tailwindcss-animate` now uses ESM import
+
+**For Future Maintenance:**
+- Keep `cli.appVersionSource` in all eas.json configurations
+- Use `EXPO_TOKEN` environment variable for authentication
+- Avoid Node.js `require()` in config files unless specifically supported
+- Monitor Expo CLI changelog for breaking changes
 - [Android App Bundle vs APK](https://developer.android.com/guide/app-bundle)

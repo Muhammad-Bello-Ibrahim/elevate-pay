@@ -46,10 +46,12 @@ setup_eas_config() {
         echo "✅ eas.json already exists"
     else
         echo "Creating eas.json..."
+        # Include appVersionSource to satisfy upcoming Expo CLI requirements
         cat > eas.json << 'EOF'
 {
   "cli": {
-    "version": ">= 5.4.0"
+    "version": ">= 5.4.0",
+    "appVersionSource": "remote"
   },
   "build": {
     "development": {

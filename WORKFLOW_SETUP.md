@@ -27,6 +27,10 @@ Value: [Your Expo access token from expo.dev]
 The workflow auto-generates a basic `eas.json` if none exists. You can customize it:
 ```json
 {
+  "cli": {
+    "version": ">= 5.4.0",
+    "appVersionSource": "remote"
+  },
   "build": {
     "production": {
       "android": {
