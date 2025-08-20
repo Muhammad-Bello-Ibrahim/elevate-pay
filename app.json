@@ -27,6 +27,12 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "0ea59092-cd2f-4f7d-99f4-1d820b8cb47a"
+      }
+    },
+    "owner": "mufteem"
   }
 }
