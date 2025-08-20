@@ -28,7 +28,6 @@ jobs:
       - name: Generate version tag
         id: get_version
         run: |
-          # Get current date for unique versioning
           TIMESTAMP=$(date +'%Y%m%d%H%M%S')
           VERSION_NAME="v1.0.${TIMESTAMP}"
           echo "VERSION_NAME=${VERSION_NAME}" >> $GITHUB_ENV
@@ -47,9 +46,7 @@ jobs:
       - name: Update version in app.json
         if: steps.check_tag.outputs.tag_exists == 'false'
         run: |
-          # Extract version number without 'v' prefix for app.json
           VERSION_NUMBER=${VERSION_NAME#v}
-          # Update version in app.json
           sed -i 's/"version": "[^"]*"/"version": "'${VERSION_NUMBER}'"/' app.json
           echo "Updated app.json version to ${VERSION_NUMBER}"
 
@@ -57,16 +54,7 @@ jobs:
         if: steps.check_tag.outputs.tag_exists == 'false'
         run: npm install -g eas-cli@latest
 
-      - name: Set up Expo authentication
-        if: steps.check_tag.outputs.tag_exists == 'false'
-        run: |
-          if [ -n "${{ secrets.EXPO_TOKEN }}" ]; then
-            echo "EXPO_TOKEN is set, authenticating with Expo..."
-            echo "${{ secrets.EXPO_TOKEN }}" | eas login --non-interactive
-          else
-            echo "⚠️ EXPO_TOKEN not found in secrets. Skipping Expo authentication."
-            echo "📝 To enable actual builds, add EXPO_TOKEN to repository secrets."
-          fi
+      # REMOVED Expo authentication step
 
       - name: Check for EAS configuration
         if: steps.check_tag.outputs.tag_exists == 'false'
@@ -114,35 +102,24 @@ jobs:
         if: steps.check_tag.outputs.tag_exists == 'false'
         run: |
           echo "Starting APK build process..."
-          
           if [ -n "${{ secrets.EXPO_TOKEN }}" ]; then
             echo "🚀 Building APK with EAS Build..."
-            # Build APK using EAS Build service
-            eas build --platform android --profile production --non-interactive --wait
-            
-            # Download the built APK
-            # Note: EAS stores builds in their service, so we'd need to download them
+            eas build --platform android --profile production --wait
             echo "📦 Build completed with EAS"
           else
             echo "⚠️ No EXPO_TOKEN found - creating mock APK for demonstration"
-            echo "📝 To enable real builds:"
-            echo "   1. Create an Expo account at https://expo.dev"
-            echo "   2. Generate an access token in your Expo dashboard"
-            echo "   3. Add it as EXPO_TOKEN secret in repository settings"
-            
-            # Create mock APK structure for testing workflow
             mkdir -p dist
             echo "Mock APK for workflow testing - Replace with real EAS build" > dist/app-release.apk
             echo "✅ Mock APK created for workflow testing"
           fi
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
       - name: Locate APK files
         if: steps.check_tag.outputs.tag_exists == 'false'
         id: locate_apk
         run: |
-          # Look for APK files in common locations
           APK_PATH=""
-          
           if [ -f "dist/app-release.apk" ]; then
             APK_PATH="dist/app-release.apk"
           elif find . -name "*.apk" -type f 2>/dev/null | head -1; then
@@ -151,17 +128,11 @@ jobs:
             echo "❌ No APK file found"
             exit 1
           fi
-          
           echo "APK found at: $APK_PATH"
           echo "apk_path=$APK_PATH" >> $GITHUB_OUTPUT
-          
-          # Create the expected directory structure for the release action
           mkdir -p build/outputs/apk/release
-          
-          # Copy APK with a standard name for release
           APK_FILENAME="elevate-x-${VERSION_NAME}.apk"
           cp "$APK_PATH" "build/outputs/apk/release/$APK_FILENAME"
-          
           echo "✅ APK prepared for release: $APK_FILENAME"
 
       - name: Create Git tag
@@ -175,7 +146,6 @@ jobs:
       - name: Create GitHub Release
         if: steps.check_tag.outputs.tag_exists == 'false'
         run: |
-          # Create release using GitHub CLI
           gh release create ${{ env.VERSION_NAME }} \
             --title "Release ${{ env.VERSION_NAME }}" \
             --notes "## Release ${{ env.VERSION_NAME }}
@@ -196,10 +166,7 @@ jobs:
       - name: Verify release creation
         if: steps.check_tag.outputs.tag_exists == 'false'
         run: |
-          # Wait a moment for release to be processed
           sleep 5
-          
-          # Check if release was created successfully
           if curl -s -f -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
                   "${{ github.api_url }}/repos/${{ github.repository }}/releases/tags/${{ env.VERSION_NAME }}" > /dev/null; then
             echo "✅ Release ${{ env.VERSION_NAME }} created successfully!"
@@ -213,6 +180,5 @@ jobs:
       - name: Cleanup
         if: always()
         run: |
-          # Clean up any temporary files
           rm -rf dist/ build/ || true
           echo "🧹 Cleanup completed"
