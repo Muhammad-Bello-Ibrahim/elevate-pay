@@ -36,3 +36,4 @@ android/
 # Temporary files
 *.tmp
 *.temp
+.env
